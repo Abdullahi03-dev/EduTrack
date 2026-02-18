@@ -1,4 +1,4 @@
-// 🔐 Firestore Security Rules for Assignment Tracker
+// Firestore Security Rules for Assignment Tracker
 // Copy and paste these rules into Firebase Console → Firestore Database → Rules
 
 rules_version = '2';
@@ -51,12 +51,12 @@ service cloud.firestore {
 // WHAT THESE RULES DO:
 // ========================================
 // 
-// ✅ User A can ONLY see assignments where userId == "user_A_uid"
-// ✅ User A CANNOT see User B's assignments
-// ✅ User A CANNOT create an assignment with userId: "user_B_uid"
-// ✅ User A CANNOT modify or delete User B's assignments
-// ✅ Unauthenticated users get NOTHING (all requests denied)
-// ✅ Required fields are enforced on creation
+// User A can ONLY see assignments where userId == "user_A_uid"
+// User A CANNOT see User B's assignments
+// User A CANNOT create an assignment with userId: "user_B_uid"
+// User A CANNOT modify or delete User B's assignments
+// Unauthenticated users get NOTHING (all requests denied)
+// Required fields are enforced on creation
 //
 // ========================================
 // HOW TO APPLY THESE RULES:
@@ -70,7 +70,7 @@ service cloud.firestore {
 // 6. Copy and paste the rules from this file
 // 7. Click "Publish"
 //
-// ⚠️ IMPORTANT: Make sure to publish the rules!
+// IMPORTANT: Make sure to publish the rules!
 //
 // ========================================
 // TESTING YOUR RULES:

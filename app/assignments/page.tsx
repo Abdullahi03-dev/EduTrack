@@ -53,7 +53,7 @@ function AssignmentsContent() {
         if (!id) return;
         try {
             await toggleAssignmentStatus(id, currentStatus);
-            toast.success(currentStatus ? "Assignment marked as incomplete" : "Assignment completed! 🎉");
+            toast.success(currentStatus ? "Assignment marked as incomplete" : "Assignment completed!");
         } catch (error) {
             toast.error("Failed to update assignment status");
             console.error(error);
@@ -64,14 +64,14 @@ function AssignmentsContent() {
         if (!id) return;
 
         toast.custom((t) => (
-            <div className="bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg shadow-lg p-4 max-w-md">
+            <div className="bg-white border border-slate-200 rounded-lg shadow-lg p-4 max-w-md">
                 <div className="flex items-start gap-3">
-                    <div className="flex-shrink-0 w-10 h-10 rounded-full bg-red-100 dark:bg-red-900/20 flex items-center justify-center">
-                        <span className="material-icons-outlined text-red-600 dark:text-red-400 text-xl">warning</span>
+                    <div className="flex-shrink-0 w-10 h-10 rounded-full bg-red-100 flex items-center justify-center">
+                        <span className="material-icons-outlined text-red-600 text-xl">warning</span>
                     </div>
                     <div className="flex-1">
-                        <h3 className="font-semibold text-slate-900 dark:text-white mb-1">Delete Assignment?</h3>
-                        <p className="text-sm text-slate-600 dark:text-slate-400 mb-4">
+                        <h3 className="font-semibold text-slate-900 mb-1">Delete Assignment?</h3>
+                        <p className="text-sm text-slate-600 mb-4">
                             This action cannot be undone. The assignment will be permanently deleted.
                         </p>
                         <div className="flex gap-2">
@@ -79,7 +79,7 @@ function AssignmentsContent() {
                                 onClick={() => {
                                     toast.dismiss(t);
                                 }}
-                                className="flex-1 px-3 py-2 bg-slate-100 dark:bg-slate-700 text-slate-700 dark:text-slate-300 rounded-lg text-sm font-medium hover:bg-slate-200 dark:hover:bg-slate-600 transition-colors"
+                                className="flex-1 px-3 py-2 bg-slate-100 text-slate-700 rounded-lg text-sm font-medium hover:bg-slate-200 transition-colors"
                             >
                                 Cancel
                             </button>
@@ -175,23 +175,23 @@ function AssignmentsContent() {
     }, [assignments, searchQuery, filter]);
 
     return (
-        <div className="min-h-screen bg-white dark:bg-slate-950">
+        <div className="min-h-screen bg-white">
             {/* Desktop Sidebar */}
-            <aside className="hidden lg:fixed lg:inset-y-0 lg:left-0 lg:w-64 lg:flex lg:flex-col bg-white dark:bg-slate-900 border-r border-slate-100 dark:border-slate-800">
+            <aside className="hidden lg:fixed lg:inset-y-0 lg:left-0 lg:w-64 lg:flex lg:flex-col bg-white border-r border-slate-100">
                 <div className="flex flex-col flex-1 p-6">
                     {/* Logo */}
                     <div className="flex items-center gap-2 mb-10">
                         <div className="w-8 h-8 rounded-lg bg-primary flex items-center justify-center text-white font-bold">
                             D
                         </div>
-                        <span className="font-bold text-lg text-slate-900 dark:text-white">
+                        <span className="font-bold text-lg text-slate-900">
                             Deadline<span className="text-primary">Tracker</span>
                         </span>
                     </div>
 
                     {/* Navigation */}
                     <nav className="flex-1 space-y-1">
-                        <Link href="/dashboard" className="flex items-center gap-3 px-3 py-2 text-slate-500 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800 rounded-lg font-medium transition-colors">
+                        <Link href="/dashboard" className="flex items-center gap-3 px-3 py-2 text-slate-500 hover:bg-slate-50 rounded-lg font-medium transition-colors">
                             <span className="material-icons-outlined text-xl">dashboard</span>
                             Dashboard
                         </Link>
@@ -199,30 +199,30 @@ function AssignmentsContent() {
                             <span className="material-icons-outlined text-xl">assignment</span>
                             Assignments
                         </Link>
-                        <Link href="/settings" className="flex items-center gap-3 px-3 py-2 text-slate-500 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800 rounded-lg font-medium transition-colors">
+                        <Link href="/settings" className="flex items-center gap-3 px-3 py-2 text-slate-500 hover:bg-slate-50 rounded-lg font-medium transition-colors">
                             <span className="material-icons-outlined text-xl">settings</span>
                             Settings
                         </Link>
                     </nav>
 
                     {/* User Profile */}
-                    <div className="pt-6 border-t border-slate-100 dark:border-slate-800">
+                    <div className="pt-6 border-t border-slate-100">
                         <div className="flex items-center gap-3 mb-3">
                             <div className="w-10 h-10 rounded-full bg-primary flex items-center justify-center text-white font-bold">
                                 {getInitials(user?.displayName, user?.email)}
                             </div>
                             <div className="flex-1 min-w-0">
-                                <p className="text-sm font-medium text-slate-900 dark:text-white truncate">
+                                <p className="text-sm font-medium text-slate-900 truncate">
                                     {user?.displayName || "Student"}
                                 </p>
-                                <p className="text-xs text-slate-500 dark:text-slate-400 truncate">
+                                <p className="text-xs text-slate-500 truncate">
                                     {user?.email}
                                 </p>
                             </div>
                         </div>
                         <button
                             onClick={handleLogout}
-                            className="flex items-center gap-2 text-sm text-slate-500 hover:text-slate-900 dark:hover:text-white transition-colors w-full px-3 py-2"
+                            className="flex items-center gap-2 text-sm text-slate-500 hover:text-slate-900 transition-colors w-full px-3 py-2"
                         >
                             <span className="material-icons-outlined text-lg">logout</span>
                             Logout
@@ -240,7 +240,7 @@ function AssignmentsContent() {
             )}
 
             {/* Mobile Sidebar */}
-            <aside className={`fixed inset-y-0 left-0 w-64 bg-white dark:bg-slate-900 shadow-xl z-50 transform transition-transform duration-300 lg:hidden ${isSidebarOpen ? 'translate-x-0' : '-translate-x-full'
+            <aside className={`fixed inset-y-0 left-0 w-64 bg-white shadow-xl z-50 transform transition-transform duration-300 lg:hidden ${isSidebarOpen ? 'translate-x-0' : '-translate-x-full'
                 }`}>
                 <div className="flex flex-col h-full p-6">
                     <div className="flex items-center justify-between mb-10">
@@ -248,17 +248,17 @@ function AssignmentsContent() {
                             <div className="w-8 h-8 rounded-lg bg-primary flex items-center justify-center text-white font-bold">
                                 D
                             </div>
-                            <span className="font-bold text-lg text-slate-900 dark:text-white">
+                            <span className="font-bold text-lg text-slate-900">
                                 Deadline<span className="text-primary">Tracker</span>
                             </span>
                         </div>
-                        <button onClick={() => setIsSidebarOpen(false)} className="text-slate-400 hover:text-slate-900 dark:hover:text-white">
+                        <button onClick={() => setIsSidebarOpen(false)} className="text-slate-400 hover:text-slate-900">
                             <span className="material-icons-outlined">close</span>
                         </button>
                     </div>
 
                     <nav className="flex-1 space-y-1">
-                        <Link href="/dashboard" className="flex items-center gap-3 px-3 py-2 text-slate-500 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800 rounded-lg font-medium transition-colors">
+                        <Link href="/dashboard" className="flex items-center gap-3 px-3 py-2 text-slate-500 hover:bg-slate-50 rounded-lg font-medium transition-colors">
                             <span className="material-icons-outlined text-xl">dashboard</span>
                             Dashboard
                         </Link>
@@ -266,29 +266,29 @@ function AssignmentsContent() {
                             <span className="material-icons-outlined text-xl">assignment</span>
                             Assignments
                         </Link>
-                        <a href="#" className="flex items-center gap-3 px-3 py-2 text-slate-500 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800 rounded-lg font-medium transition-colors">
+                        <a href="#" className="flex items-center gap-3 px-3 py-2 text-slate-500 hover:bg-slate-50 rounded-lg font-medium transition-colors">
                             <span className="material-icons-outlined text-xl">settings</span>
                             Settings
                         </a>
                     </nav>
 
-                    <div className="pt-6 border-t border-slate-100 dark:border-slate-800">
+                    <div className="pt-6 border-t border-slate-100">
                         <div className="flex items-center gap-3 mb-3">
                             <div className="w-10 h-10 rounded-full bg-primary flex items-center justify-center text-white font-bold">
                                 {getInitials(user?.displayName, user?.email)}
                             </div>
                             <div className="flex-1 min-w-0">
-                                <p className="text-sm font-medium text-slate-900 dark:text-white truncate">
+                                <p className="text-sm font-medium text-slate-900 truncate">
                                     {user?.displayName || "Student"}
                                 </p>
-                                <p className="text-xs text-slate-500 dark:text-slate-400 truncate">
+                                <p className="text-xs text-slate-500 truncate">
                                     {user?.email}
                                 </p>
                             </div>
                         </div>
                         <button
                             onClick={handleLogout}
-                            className="flex items-center gap-2 text-sm text-slate-500 hover:text-slate-900 dark:hover:text-white transition-colors w-full px-3 py-2"
+                            className="flex items-center gap-2 text-sm text-slate-500 hover:text-slate-900 transition-colors w-full px-3 py-2"
                         >
                             <span className="material-icons-outlined text-lg">logout</span>
                             Logout
@@ -300,11 +300,11 @@ function AssignmentsContent() {
             {/* Main Content */}
             <div className="lg:pl-64">
                 {/* Mobile Header */}
-                <header className="sticky top-0 z-30 bg-white/80 dark:bg-slate-900/80 backdrop-blur-md border-b border-slate-100 dark:border-slate-800 lg:hidden">
+                <header className="sticky top-0 z-30 bg-white/80 backdrop-blur-md border-b border-slate-100 lg:hidden">
                     <div className="flex items-center justify-between px-4 py-3">
                         <button
                             onClick={() => setIsSidebarOpen(true)}
-                            className="p-2 -ml-2 text-slate-500 hover:text-slate-900 dark:hover:text-white"
+                            className="p-2 -ml-2 text-slate-500 hover:text-slate-900"
                         >
                             <span className="material-icons-outlined text-2xl">menu</span>
                         </button>
@@ -312,7 +312,7 @@ function AssignmentsContent() {
                             <div className="w-7 h-7 rounded-lg bg-primary flex items-center justify-center text-white font-bold text-sm">
                                 D
                             </div>
-                            <span className="font-bold text-slate-900 dark:text-white">DeadlineTracker</span>
+                            <span className="font-bold text-slate-900">DeadlineTracker</span>
                         </div>
                         <div className="w-8 h-8 rounded-full bg-primary flex items-center justify-center text-white font-bold text-sm">
                             {getInitials(user?.displayName, user?.email)}
@@ -324,8 +324,8 @@ function AssignmentsContent() {
                     {/* Header Controls */}
                     <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">
                         <div>
-                            <h1 className="text-2xl font-bold text-slate-900 dark:text-white">Assignments</h1>
-                            <p className="text-slate-500 dark:text-slate-400 text-sm">Manage and track your academic tasks</p>
+                            <h1 className="text-2xl font-bold text-slate-900">Assignments</h1>
+                            <p className="text-slate-500 text-sm">Manage and track your academic tasks</p>
                         </div>
                         <button
                             onClick={() => setIsModalOpen(true)}
@@ -346,27 +346,27 @@ function AssignmentsContent() {
                                 placeholder="Search assignments..."
                                 value={searchQuery}
                                 onChange={(e) => setSearchQuery(e.target.value)}
-                                className="w-full pl-10 pr-4 py-2.5 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary text-slate-900 dark:text-white transition-all"
+                                className="w-full pl-10 pr-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary text-slate-900 transition-all"
                             />
                         </div>
 
                         {/* Filter Tabs */}
-                        <div className="flex bg-slate-100 dark:bg-slate-800 p-1 rounded-xl self-start md:self-auto">
+                        <div className="flex bg-slate-100 p-1 rounded-xl self-start md:self-auto">
                             <button
                                 onClick={() => setFilter('today')}
-                                className={`px-4 py-1.5 rounded-lg text-sm font-medium transition-all ${filter === 'today' ? 'bg-white dark:bg-slate-700 text-slate-900 dark:text-white shadow-sm' : 'text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-300'}`}
+                                className={`px-4 py-1.5 rounded-lg text-sm font-medium transition-all ${filter === 'today' ? 'bg-white text-slate-900 shadow-sm' : 'text-slate-500 hover:text-slate-700'}`}
                             >
                                 Today
                             </button>
                             <button
                                 onClick={() => setFilter('week')}
-                                className={`px-4 py-1.5 rounded-lg text-sm font-medium transition-all ${filter === 'week' ? 'bg-white dark:bg-slate-700 text-slate-900 dark:text-white shadow-sm' : 'text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-300'}`}
+                                className={`px-4 py-1.5 rounded-lg text-sm font-medium transition-all ${filter === 'week' ? 'bg-white text-slate-900 shadow-sm' : 'text-slate-500 hover:text-slate-700'}`}
                             >
                                 This Week
                             </button>
                             <button
                                 onClick={() => setFilter('all')}
-                                className={`px-4 py-1.5 rounded-lg text-sm font-medium transition-all ${filter === 'all' ? 'bg-white dark:bg-slate-700 text-slate-900 dark:text-white shadow-sm' : 'text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-300'}`}
+                                className={`px-4 py-1.5 rounded-lg text-sm font-medium transition-all ${filter === 'all' ? 'bg-white text-slate-900 shadow-sm' : 'text-slate-500 hover:text-slate-700'}`}
                             >
                                 All
                             </button>
@@ -374,7 +374,7 @@ function AssignmentsContent() {
                     </div>
 
                     {/* Filter Status Info */}
-                    <div className="flex items-center gap-2 mb-4 text-sm text-slate-500 dark:text-slate-400">
+                    <div className="flex items-center gap-2 mb-4 text-sm text-slate-500">
                         <span>Showing {filteredAssignments.length} assignment{filteredAssignments.length !== 1 ? 's' : ''}</span>
                     </div>
 
@@ -385,7 +385,7 @@ function AssignmentsContent() {
                                 <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" />
                                 <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
                             </svg>
-                            <p className="text-slate-600 dark:text-slate-400">Loading assignments...</p>
+                            <p className="text-slate-600">Loading assignments...</p>
                         </div>
                     )}
 
@@ -406,11 +406,11 @@ function AssignmentsContent() {
 
                             {filteredAssignments.length === 0 && !loading && (
                                 <div className="text-center py-12 px-4">
-                                    <div className="w-16 h-16 bg-slate-50 dark:bg-slate-800/50 rounded-full flex items-center justify-center mx-auto mb-4">
+                                    <div className="w-16 h-16 bg-slate-50 rounded-full flex items-center justify-center mx-auto mb-4">
                                         <span className="material-icons-outlined text-3xl text-slate-300">assignment</span>
                                     </div>
-                                    <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-1">No assignments found</h3>
-                                    <p className="text-slate-500 dark:text-slate-400 mb-4">
+                                    <h3 className="text-lg font-bold text-slate-900 mb-1">No assignments found</h3>
+                                    <p className="text-slate-500 mb-4">
                                         {searchQuery || filter !== 'all'
                                             ? 'Try adjusting your search or filters'
                                             : 'Get started by adding your first assignment!'}

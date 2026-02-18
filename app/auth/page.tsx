@@ -75,25 +75,25 @@ export default function AuthPage() {
     };
 
     return (
-        <div className="h-screen p-6 md:p-8 lg:p-15 flex items-center justify-center bg-white dark:bg-slate-950 font-display text-slate-900 dark:text-slate-50 antialiased selection:bg-primary/20">
+        <div className="h-screen p-6 md:p-8 lg:p-15 flex items-center justify-center bg-white font-display text-slate-900 antialiased selection:bg-primary/20">
             <div className="w-full max-w-md lg:pt-35 lg:pb-15">
                 {/* Brand Header */}
                 <div className="text-center mb-10">
-                    <h1 className="text-3xl font-bold text-slate-900 dark:text-white">
+                    <h1 className="text-3xl font-bold text-slate-900">
                         {isLogin ? "Welcome back" : "Create an account"}
                     </h1>
-                    <p className="text-slate-500 dark:text-slate-400 mt-2 text-sm">
+                    <p className="text-slate-500 mt-2 text-sm">
                         {isLogin ? "Sign in to access your dashboard." : "Get started with your free account."}
                     </p>
                 </div>
 
                 {/* Auth Card */}
-                <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-6 sm:p-8 shadow-sm">
+                <div className="bg-white border border-slate-200 rounded-2xl p-6 sm:p-8 shadow-sm">
                     {/* Error Message */}
                     {error && (
                         <div className={`mb-4 p-3 rounded-lg text-sm ${error.includes("created") || error.includes("verify")
-                            ? "bg-green-50 dark:bg-green-900/20 text-green-600 dark:text-green-400 border border-green-200 dark:border-green-800"
-                            : "bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400 border border-red-200 dark:border-red-800"
+                            ? "bg-green-50 text-green-600 border border-green-200"
+                            : "bg-red-50 text-red-600 border border-red-200"
                             }`}>
                             {error}
                         </div>
@@ -103,7 +103,7 @@ export default function AuthPage() {
                     <button
                         onClick={handleGoogleSignIn}
                         disabled={loading}
-                        className="flex items-center justify-center gap-3 w-full bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-800 hover:border-slate-300 dark:hover:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-900 text-slate-900 dark:text-white font-medium py-3 px-4 rounded-xl transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                        className="flex items-center justify-center gap-3 w-full bg-white border border-slate-200 hover:border-slate-300 hover:bg-slate-50 text-slate-900 font-medium py-3 px-4 rounded-xl transition-all disabled:opacity-50 disabled:cursor-not-allowed"
                     >
                         <img
                             src="https://www.svgrepo.com/show/475656/google-color.svg"
@@ -115,10 +115,10 @@ export default function AuthPage() {
 
                     <div className="relative my-6">
                         <div className="absolute inset-0 flex items-center">
-                            <div className="w-full border-t border-slate-100 dark:border-slate-800"></div>
+                            <div className="w-full border-t border-slate-100"></div>
                         </div>
                         <div className="relative flex justify-center text-xs uppercase">
-                            <span className="bg-white dark:bg-slate-900 px-3 text-slate-400">
+                            <span className="bg-white px-3 text-slate-400">
                                 {isLogin ? "Or continue with email" : "Or sign up with email"}
                             </span>
                         </div>
@@ -130,7 +130,7 @@ export default function AuthPage() {
                             <div>
                                 <label
                                     htmlFor="name"
-                                    className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5"
+                                    className="block text-sm font-medium text-slate-700 mb-1.5"
                                 >
                                     Full Name
                                 </label>
@@ -141,7 +141,7 @@ export default function AuthPage() {
                                     required
                                     value={name}
                                     onChange={(e) => setName(e.target.value)}
-                                    className="block w-full rounded-xl border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-950 text-slate-900 dark:text-white shadow-sm focus:border-primary focus:ring-primary h-11 sm:text-sm px-4 outline-none ring-1 ring-transparent focus:ring-2 transition-all"
+                                    className="block w-full rounded-xl border-slate-200 bg-white text-slate-900 shadow-sm focus:border-primary focus:ring-primary h-11 sm:text-sm px-4 outline-none ring-1 ring-transparent focus:ring-2 transition-all"
                                     placeholder="John Doe"
                                 />
                             </div>
@@ -150,7 +150,7 @@ export default function AuthPage() {
                         <div>
                             <label
                                 htmlFor="email"
-                                className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5"
+                                className="block text-sm font-medium text-slate-700 mb-1.5"
                             >
                                 Email address
                             </label>
@@ -162,7 +162,7 @@ export default function AuthPage() {
                                 required
                                 value={email}
                                 onChange={(e) => setEmail(e.target.value)}
-                                className="block w-full rounded-xl border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-950 text-slate-900 dark:text-white shadow-sm focus:border-primary focus:ring-primary h-11 sm:text-sm px-4 outline-none ring-1 ring-transparent focus:ring-2 transition-all"
+                                className="block w-full rounded-xl border-slate-200 bg-white text-slate-900 shadow-sm focus:border-primary focus:ring-primary h-11 sm:text-sm px-4 outline-none ring-1 ring-transparent focus:ring-2 transition-all"
                                 placeholder="you@example.com"
                             />
                         </div>
@@ -170,7 +170,7 @@ export default function AuthPage() {
                         <div>
                             <label
                                 htmlFor="password"
-                                className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5"
+                                className="block text-sm font-medium text-slate-700 mb-1.5"
                             >
                                 Password
                             </label>
@@ -182,7 +182,7 @@ export default function AuthPage() {
                                 required
                                 value={password}
                                 onChange={(e) => setPassword(e.target.value)}
-                                className="block w-full rounded-xl border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-950 text-slate-900 dark:text-white shadow-sm focus:border-primary focus:ring-primary h-11 sm:text-sm px-4 outline-none ring-1 ring-transparent focus:ring-2 transition-all"
+                                className="block w-full rounded-xl border-slate-200 bg-white text-slate-900 shadow-sm focus:border-primary focus:ring-primary h-11 sm:text-sm px-4 outline-none ring-1 ring-transparent focus:ring-2 transition-all"
                                 placeholder="••••••••"
                                 minLength={6}
                             />
@@ -195,11 +195,11 @@ export default function AuthPage() {
                                         id="remember-me"
                                         name="remember-me"
                                         type="checkbox"
-                                        className="h-4 w-4 rounded border-slate-300 text-primary focus:ring-primary bg-white dark:bg-slate-900"
+                                        className="h-4 w-4 rounded border-slate-300 text-primary focus:ring-primary bg-white"
                                     />
                                     <label
                                         htmlFor="remember-me"
-                                        className="ml-2 block text-sm text-slate-500 dark:text-slate-400"
+                                        className="ml-2 block text-sm text-slate-500"
                                     >
                                         Remember me
                                     </label>
@@ -236,7 +236,7 @@ export default function AuthPage() {
                     </form>
                 </div>
 
-                <div className="mt-4 text-center text-sm text-slate-500 dark:text-slate-400">
+                <div className="mt-4 text-center text-sm text-slate-500">
                     {isLogin ? "Not a member? " : "Already have an account? "}
                     <button
                         onClick={() => {

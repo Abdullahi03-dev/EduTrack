@@ -75,7 +75,7 @@ export default function EditAssignmentModal({ isOpen, onClose, assignment }: Edi
             );
 
             if (result.success) {
-                toast.success("Assignment updated successfully! ✏️");
+                toast.success("Assignment updated successfully!");
                 onClose();
             } else {
                 setError("Failed to update assignment. Please try again.");
@@ -102,15 +102,15 @@ export default function EditAssignmentModal({ isOpen, onClose, assignment }: Edi
 
             {/* Modal */}
             <div className="flex min-h-full items-center justify-center p-4">
-                <div className="relative bg-white dark:bg-slate-900 rounded-2xl shadow-xl w-full max-w-md p-6 border border-slate-200 dark:border-slate-800">
+                <div className="relative bg-white rounded-2xl shadow-xl w-full max-w-md p-6 border border-slate-200">
                     {/* Header */}
                     <div className="flex items-center justify-between mb-6">
-                        <h2 className="text-xl font-bold text-slate-900 dark:text-white">
+                        <h2 className="text-xl font-bold text-slate-900">
                             Edit Assignment
                         </h2>
                         <button
                             onClick={onClose}
-                            className="text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 transition-colors"
+                            className="text-slate-400 hover:text-slate-600 transition-colors"
                         >
                             <span className="material-icons-outlined">close</span>
                         </button>
@@ -118,7 +118,7 @@ export default function EditAssignmentModal({ isOpen, onClose, assignment }: Edi
 
                     {/* Error Message */}
                     {error && (
-                        <div className="mb-4 p-3 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg text-red-600 dark:text-red-400 text-sm">
+                        <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-lg text-red-600 text-sm">
                             {error}
                         </div>
                     )}
@@ -127,7 +127,7 @@ export default function EditAssignmentModal({ isOpen, onClose, assignment }: Edi
                     <form onSubmit={handleSubmit} className="space-y-4">
                         {/* Title */}
                         <div>
-                            <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5">
+                            <label className="block text-sm font-medium text-slate-700 mb-1.5">
                                 Assignment Title <span className="text-red-500">*</span>
                             </label>
                             <input
@@ -135,14 +135,14 @@ export default function EditAssignmentModal({ isOpen, onClose, assignment }: Edi
                                 value={title}
                                 onChange={(e) => setTitle(e.target.value)}
                                 placeholder="e.g., Organic Chemistry Lab Report"
-                                className="w-full px-3 py-2.5 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary text-slate-900 dark:text-white placeholder:text-slate-400 transition-all"
+                                className="w-full px-3 py-2.5 bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary text-slate-900 placeholder:text-slate-400 transition-all"
                                 required
                             />
                         </div>
 
                         {/* Course */}
                         <div>
-                            <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5">
+                            <label className="block text-sm font-medium text-slate-700 mb-1.5">
                                 Course Code <span className="text-red-500">*</span>
                             </label>
                             <input
@@ -150,14 +150,14 @@ export default function EditAssignmentModal({ isOpen, onClose, assignment }: Edi
                                 value={course}
                                 onChange={(e) => setCourse(e.target.value)}
                                 placeholder="e.g., CHEM 201"
-                                className="w-full px-3 py-2.5 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary text-slate-900 dark:text-white placeholder:text-slate-400 transition-all"
+                                className="w-full px-3 py-2.5 bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary text-slate-900 placeholder:text-slate-400 transition-all"
                                 required
                             />
                         </div>
 
                         {/* Description */}
                         <div>
-                            <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5">
+                            <label className="block text-sm font-medium text-slate-700 mb-1.5">
                                 Description <span className="text-slate-400 text-xs">(Optional)</span>
                             </label>
                             <textarea
@@ -165,40 +165,40 @@ export default function EditAssignmentModal({ isOpen, onClose, assignment }: Edi
                                 onChange={(e) => setDescription(e.target.value)}
                                 placeholder="Add notes, requirements, or details about this assignment..."
                                 rows={3}
-                                className="w-full px-3 py-2.5 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary text-slate-900 dark:text-white placeholder:text-slate-400 transition-all resize-none"
+                                className="w-full px-3 py-2.5 bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary text-slate-900 placeholder:text-slate-400 transition-all resize-none"
                             />
                         </div>
 
                         {/* Due Date & Time */}
                         <div className="grid grid-cols-2 gap-3">
                             <div>
-                                <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5">
+                                <label className="block text-sm font-medium text-slate-700 mb-1.5">
                                     Due Date <span className="text-red-500">*</span>
                                 </label>
                                 <input
                                     type="date"
                                     value={dueDate}
                                     onChange={(e) => setDueDate(e.target.value)}
-                                    className="w-full px-3 py-2.5 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary text-slate-900 dark:text-white transition-all"
+                                    className="w-full px-3 py-2.5 bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary text-slate-900 transition-all"
                                     required
                                 />
                             </div>
                             <div>
-                                <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5">
+                                <label className="block text-sm font-medium text-slate-700 mb-1.5">
                                     Time
                                 </label>
                                 <input
                                     type="time"
                                     value={dueTime}
                                     onChange={(e) => setDueTime(e.target.value)}
-                                    className="w-full px-3 py-2.5 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary text-slate-900 dark:text-white transition-all"
+                                    className="w-full px-3 py-2.5 bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary text-slate-900 transition-all"
                                 />
                             </div>
                         </div>
 
                         {/* Priority */}
                         <div>
-                            <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
+                            <label className="block text-sm font-medium text-slate-700 mb-2">
                                 Priority Level
                             </label>
                             <div className="flex gap-2">
@@ -207,7 +207,7 @@ export default function EditAssignmentModal({ isOpen, onClose, assignment }: Edi
                                     onClick={() => setPriority('high')}
                                     className={`flex-1 px-4 py-2.5 rounded-lg font-medium transition-all ${priority === 'high'
                                         ? 'bg-red-500 text-white shadow-sm'
-                                        : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-slate-700'
+                                        : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
                                         }`}
                                 >
                                     High
@@ -217,7 +217,7 @@ export default function EditAssignmentModal({ isOpen, onClose, assignment }: Edi
                                     onClick={() => setPriority('medium')}
                                     className={`flex-1 px-4 py-2.5 rounded-lg font-medium transition-all ${priority === 'medium'
                                         ? 'bg-yellow-500 text-white shadow-sm'
-                                        : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-slate-700'
+                                        : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
                                         }`}
                                 >
                                     Medium
@@ -227,7 +227,7 @@ export default function EditAssignmentModal({ isOpen, onClose, assignment }: Edi
                                     onClick={() => setPriority('low')}
                                     className={`flex-1 px-4 py-2.5 rounded-lg font-medium transition-all ${priority === 'low'
                                         ? 'bg-green-500 text-white shadow-sm'
-                                        : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-slate-700'
+                                        : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
                                         }`}
                                 >
                                     Low
@@ -240,7 +240,7 @@ export default function EditAssignmentModal({ isOpen, onClose, assignment }: Edi
                             <button
                                 type="button"
                                 onClick={onClose}
-                                className="flex-1 px-4 py-2.5 bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 rounded-lg font-medium hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors"
+                                className="flex-1 px-4 py-2.5 bg-slate-100 text-slate-700 rounded-lg font-medium hover:bg-slate-200 transition-colors"
                                 disabled={loading}
                             >
                                 Cancel

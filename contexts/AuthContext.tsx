@@ -3,6 +3,7 @@
 import { createContext, useContext, useEffect, useState, ReactNode } from 'react';
 import { User } from 'firebase/auth';
 import { onAuthStateChange } from '@/lib/auth';
+import { createOrUpdateUserProfile } from '@/lib/users';
 
 interface AuthContextType {
     user: User | null;
@@ -44,6 +45,14 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
             setLoading(false);
 
             if (user) {
+                // Create/update user profile for email reminders
+                await createOrUpdateUserProfile(
+                    user.uid,
+                    user.email || '',
+                    user.displayName || 'Student',
+                    true // Enable email notifications by default
+                );
+
                 // Set auth cookies for middleware
                 const token = await user.getIdToken();
                 setCookie('authToken', token, 7);
