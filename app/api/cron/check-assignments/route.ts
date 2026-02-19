@@ -33,14 +33,15 @@ export async function GET(request: NextRequest) {
         const now = new Date();
         // Look ahead 48 hours to catch "Day Before" reminders
         const futureWindow = new Date(now.getTime() + 48 * 60 * 60 * 1000);
+        // Look back 24 hours to catch overdue assignments
+        const pastWindow = new Date(now.getTime() - 24 * 60 * 60 * 1000);
 
-        // Query assignments due in the next 48 hours that are not completed
-        // Note: You might need to update your Firestore Index to support this wider range if needed
+        // Query assignments due in the next 48 hours OR overdue (within last 24h) that are not completed
         const assignmentsRef = collection(db, 'assignments');
         const q = query(
             assignmentsRef,
-            where('completed', '==', 'false'), // Note: Ensure this matches your firestore type (boolean vs string)
-            where('dueDate', '>=', Timestamp.fromDate(now)),
+            where('completed', '==', false), // Handle as boolean, not string
+            where('dueDate', '>=', Timestamp.fromDate(pastWindow)),
             where('dueDate', '<=', Timestamp.fromDate(futureWindow))
         );
 
@@ -81,9 +82,9 @@ export async function GET(request: NextRequest) {
 
         // Get current hour in UTC+1 (Nigeria/West Africa)
         // new Date().getUTCHours() returns UTC hour. Add 1 for WAT.
-        // 8 AM WAT = 7 AM UTC
+        // 8 AM WAT = 7 AM UTC, but allow 3-hour window (6-9 AM UTC = 7-10 AM WAT)
         const currentHourUTC = now.getUTCHours();
-        const isMorningCheck = currentHourUTC === 7; // 7 AM UTC = 8 AM WAT
+        const isMorningCheck = currentHourUTC >= 6 && currentHourUTC <= 9; // 6-9 AM UTC = 7-10 AM WAT
 
         // Process each assignment
         for (const docSnapshot of querySnapshot.docs) {
@@ -95,23 +96,26 @@ export async function GET(request: NextRequest) {
 
             let reminderType: 'morning' | 'tomorrow' | 'urgent' | null = null;
 
+            // OVERDUE ALERT - Any overdue assignment not yet completed
+            if (hoursLeft < 0) {
+                reminderType = 'urgent'; // Send urgent reminder for overdue
+            }
             // NEW ASSIGNMENT ALERT (Test Mechanism)
             // If High Priority & Created < 60 mins ago -> Send Immediate Confirmation
-            if (data.priority === 'high' && minutesSinceCreation < 60) {
+            else if (data.priority === 'high' && minutesSinceCreation < 60) {
                 reminderType = 'urgent'; // Triggers immediate email
             }
-
             // SMART PRIORITY LOGIC (Standard Rules)
             else if (data.priority === 'high') {
                 // High Priority Logic
                 if (hoursLeft >= 23 && hoursLeft <= 25) {
                     reminderType = 'tomorrow'; // Day before (~24h)
-                } else if (hoursLeft < 24 && isMorningCheck) {
+                } else if (hoursLeft >= 0 && hoursLeft < 24 && isMorningCheck) {
                     reminderType = 'morning'; // Morning of due date
                 }
             } else if (data.priority === 'medium') {
                 // Medium Priority Logic
-                if (hoursLeft < 24 && isMorningCheck) {
+                if (hoursLeft >= 0 && hoursLeft < 24 && isMorningCheck) {
                     reminderType = 'morning'; // Morning of due date
                 }
             } else if (data.priority === 'low') {

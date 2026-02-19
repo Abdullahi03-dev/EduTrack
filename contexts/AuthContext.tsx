@@ -41,26 +41,31 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
     useEffect(() => {
         const unsubscribe = onAuthStateChange(async (user) => {
-            setUser(user);
-            setLoading(false);
+            try {
+                if (user) {
+                    // Create/update user profile for email reminders
+                    await createOrUpdateUserProfile(
+                        user.uid,
+                        user.email || '',
+                        user.displayName || 'Student',
+                        true // Enable email notifications by default
+                    );
 
-            if (user) {
-                // Create/update user profile for email reminders
-                await createOrUpdateUserProfile(
-                    user.uid,
-                    user.email || '',
-                    user.displayName || 'Student',
-                    true // Enable email notifications by default
-                );
-
-                // Set auth cookies for middleware
-                const token = await user.getIdToken();
-                setCookie('authToken', token, 7);
-                setCookie('emailVerified', user.emailVerified.toString(), 7);
-            } else {
-                // Clear cookies on logout
-                deleteCookie('authToken');
-                deleteCookie('emailVerified');
+                    // Set auth cookies for middleware - BEFORE setting user state
+                    const token = await user.getIdToken();
+                    setCookie('authToken', token, 7);
+                    setCookie('emailVerified', user.emailVerified.toString(), 7);
+                } else {
+                    // Clear cookies on logout
+                    deleteCookie('authToken');
+                    deleteCookie('emailVerified');
+                }
+            } catch (error) {
+                console.error('Error in auth state change:', error);
+            } finally {
+                // Always update user state after cookies are set
+                setUser(user);
+                setLoading(false);
             }
         });
 

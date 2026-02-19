@@ -9,8 +9,9 @@ export function middleware(request: NextRequest) {
     const { pathname } = request.nextUrl;
 
     // Define protected routes
-    const isProtectedRoute = pathname.startsWith('/dashboard');
+    const isProtectedRoute = pathname.startsWith('/dashboard') || pathname.startsWith('/assignments') || pathname.startsWith('/settings');
     const isAuthRoute = pathname.startsWith('/auth');
+    const isVerifyRoute = pathname.startsWith('/verify-email');
 
     // If accessing protected route without auth token, redirect to auth
     if (isProtectedRoute && !authToken) {
@@ -28,6 +29,13 @@ export function middleware(request: NextRequest) {
 
     // If already authenticated and trying to access auth page, redirect to dashboard
     if (isAuthRoute && authToken && emailVerified === 'true') {
+        const url = request.nextUrl.clone();
+        url.pathname = '/dashboard';
+        return NextResponse.redirect(url);
+    }
+
+    // If verified but on verify-email, redirect to dashboard
+    if (isVerifyRoute && authToken && emailVerified === 'true') {
         const url = request.nextUrl.clone();
         url.pathname = '/dashboard';
         return NextResponse.redirect(url);
