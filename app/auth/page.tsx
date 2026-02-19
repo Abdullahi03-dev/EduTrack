@@ -4,7 +4,7 @@ import Link from "next/link";
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/contexts/AuthContext";
-import { signInWithEmail, signUpWithEmail, signInWithGoogle } from "@/lib/auth";
+import { signInWithEmail, signUpWithEmail, signInWithGoogle, getGoogleRedirectResult } from "@/lib/auth";
 
 export default function AuthPage() {
     const [isLogin, setIsLogin] = useState(true);
@@ -13,31 +13,55 @@ export default function AuthPage() {
     const [name, setName] = useState("");
     const [error, setError] = useState("");
     const [loading, setLoading] = useState(false);
+    const [isCheckingRedirect, setIsCheckingRedirect] = useState(true);
     const router = useRouter();
     const { user, loading: authLoading } = useAuth();
 
+    // Check for Google redirect result on mount
+    useEffect(() => {
+        const checkGoogleRedirect = async () => {
+            try {
+                const { user, error } = await getGoogleRedirectResult();
+                if (error) {
+                    // Only show error if not a normal "no redirect" case
+                    if (error && !error.includes('No redirect')) {
+                        setError(error);
+                    }
+                }
+                // If user exists, AuthContext will handle the redirect via the useEffect below
+            } catch (err) {
+                console.error('Error checking redirect result:', err);
+            } finally {
+                setIsCheckingRedirect(false);
+            }
+        };
+
+        checkGoogleRedirect();
+    }, []);
+
     // Redirect if already authenticated
     useEffect(() => {
-        if (!authLoading && user) {
+        if (!authLoading && !isCheckingRedirect && user) {
             if (user.emailVerified) {
                 router.push("/dashboard");
             } else {
                 router.push("/verify-email");
             }
         }
-    }, [user, authLoading, router]);
+    }, [user, authLoading, isCheckingRedirect, router]);
 
     const handleGoogleSignIn = async () => {
         setError("");
         setLoading(true);
 
-        const { user, error } = await signInWithGoogle();
-
-        if (error) {
-            setError(error);
+        try {
+            // This will redirect to Google, then back to this page
+            await signInWithGoogle();
+            // No need to set loading to false - the redirect will handle it
+        } catch (err: any) {
+            setError(err.message || "Authentication failed");
             setLoading(false);
         }
-        // Don't navigate here - let AuthContext update handle it
     };
 
     const handleEmailAuth = async (e: React.FormEvent) => {
@@ -45,30 +69,35 @@ export default function AuthPage() {
         setError("");
         setLoading(true);
 
-        if (isLogin) {
-            // Sign in
-            const { user, error } = await signInWithEmail(email, password);
+        try {
+            if (isLogin) {
+                // Sign in
+                const { user, error } = await signInWithEmail(email, password);
 
-            if (error) {
-                setError(error);
-                setLoading(false);
-            }
-            // Don't navigate here - let AuthContext update handle it
-        } else {
-            // Sign up
-            if (!name.trim()) {
-                setError("Please enter your full name");
-                setLoading(false);
-                return;
-            }
+                if (error) {
+                    setError(error);
+                    setLoading(false);
+                }
+                // AuthContext will handle the redirect through useEffect
+            } else {
+                // Sign up
+                if (!name.trim()) {
+                    setError("Please enter your full name");
+                    setLoading(false);
+                    return;
+                }
 
-            const { user, error } = await signUpWithEmail(email, password, name);
+                const { user, error } = await signUpWithEmail(email, password, name);
 
-            if (error) {
-                setError(error);
-                setLoading(false);
+                if (error) {
+                    setError(error);
+                    setLoading(false);
+                }
+                // AuthContext will handle the redirect through useEffect
             }
-            // Don't navigate here - let AuthContext update handle it
+        } catch (err: any) {
+            setError(err.message || "Authentication failed");
+            setLoading(false);
         }
     };
 

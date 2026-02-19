@@ -1,7 +1,8 @@
 import {
     createUserWithEmailAndPassword,
     signInWithEmailAndPassword,
-    signInWithPopup,
+    signInWithRedirect,
+    getRedirectResult,
     GoogleAuthProvider,
     signOut,
     onAuthStateChanged,
@@ -62,18 +63,41 @@ export const signInWithEmail = async (email: string, password: string) => {
     }
 };
 
-// Sign in with Google OAuth
+// Sign in with Google OAuth (using redirect for better security & COOP compatibility)
 export const signInWithGoogle = async () => {
     try {
-        const result = await signInWithPopup(auth, googleProvider);
-        return { user: result.user, error: null };
+        await signInWithRedirect(auth, googleProvider);
+        // Note: After redirect, the auth state will be automatically updated
+        // No need to return here - the redirect will handle everything
+        return { user: null, error: null };
     } catch (error: any) {
         let errorMessage = 'An error occurred during Google sign in.';
 
-        if (error.code === 'auth/popup-closed-by-user') {
-            errorMessage = 'Sign in cancelled.';
-        } else if (error.code === 'auth/popup-blocked') {
-            errorMessage = 'Popup was blocked. Please allow popups for this site.';
+        if (error.code === 'auth/popup-blocked') {
+            errorMessage = 'Authentication blocked. Please check your browser settings.';
+        }
+
+        return { user: null, error: errorMessage };
+    }
+};
+
+// Get redirect result (call this on page load to complete redirect auth)
+export const getGoogleRedirectResult = async () => {
+    try {
+        const result = await getRedirectResult(auth);
+        if (result) {
+            return { user: result.user, error: null };
+        }
+        return { user: null, error: null };
+    } catch (error: any) {
+        let errorMessage = 'An error occurred during authentication.';
+
+        if (error.code === 'auth/account-exists-with-different-credential') {
+            errorMessage = 'An account already exists with this email.';
+        } else if (error.code === 'auth/auth-domain-config-required') {
+            errorMessage = 'Authentication domain not configured.';
+        } else if (error.code === 'auth/operation-not-allowed') {
+            errorMessage = 'Google sign in is not enabled.';
         }
 
         return { user: null, error: errorMessage };
