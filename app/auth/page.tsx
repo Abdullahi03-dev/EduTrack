@@ -1,8 +1,9 @@
 "use client";
 
 import Link from "next/link";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
+import { useAuth } from "@/contexts/AuthContext";
 import { signInWithEmail, signUpWithEmail, signInWithGoogle } from "@/lib/auth";
 
 export default function AuthPage() {
@@ -13,6 +14,18 @@ export default function AuthPage() {
     const [error, setError] = useState("");
     const [loading, setLoading] = useState(false);
     const router = useRouter();
+    const { user, loading: authLoading } = useAuth();
+
+    // Redirect if already authenticated
+    useEffect(() => {
+        if (!authLoading && user) {
+            if (user.emailVerified) {
+                router.push("/dashboard");
+            } else {
+                router.push("/verify-email");
+            }
+        }
+    }, [user, authLoading, router]);
 
     const handleGoogleSignIn = async () => {
         setError("");
@@ -23,15 +36,8 @@ export default function AuthPage() {
         if (error) {
             setError(error);
             setLoading(false);
-        } else if (user) {
-            // Google accounts are automatically verified
-            // But we check anyway for consistency
-            if (!user.emailVerified) {
-                router.push("/verify-email");
-            } else {
-                router.push("/dashboard");
-            }
         }
+        // Don't navigate here - let AuthContext update handle it
     };
 
     const handleEmailAuth = async (e: React.FormEvent) => {
@@ -46,14 +52,8 @@ export default function AuthPage() {
             if (error) {
                 setError(error);
                 setLoading(false);
-            } else if (user) {
-                // Check if email is verified
-                if (!user.emailVerified) {
-                    router.push("/verify-email");
-                } else {
-                    router.push("/dashboard");
-                }
             }
+            // Don't navigate here - let AuthContext update handle it
         } else {
             // Sign up
             if (!name.trim()) {
@@ -67,10 +67,8 @@ export default function AuthPage() {
             if (error) {
                 setError(error);
                 setLoading(false);
-            } else if (user) {
-                // Redirect to email verification page
-                router.push("/verify-email");
             }
+            // Don't navigate here - let AuthContext update handle it
         }
     };
 
