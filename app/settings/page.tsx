@@ -1,11 +1,13 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import { useAuth } from "@/contexts/AuthContext";
 import { logOut } from "@/lib/auth";
+import { getUserProfile, updateEmailNotificationPreference } from "@/lib/users";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
+import { toast } from "sonner";
 
 function SettingsContent() {
     const { user } = useAuth();
@@ -14,7 +16,28 @@ function SettingsContent() {
 
     // Notification Settings State
     const [emailNotifications, setEmailNotifications] = useState(true);
+    const [isLoadingPreference, setIsLoadingPreference] = useState(true);
     const [isSaving, setIsSaving] = useState(false);
+
+    // Load user's notification preference from Firestore on mount
+    useEffect(() => {
+        const loadPreference = async () => {
+            if (!user) return;
+
+            try {
+                const profile = await getUserProfile(user.uid);
+                if (profile) {
+                    setEmailNotifications(profile.emailNotifications);
+                }
+            } catch (error) {
+                console.error("Error loading notification preference:", error);
+            } finally {
+                setIsLoadingPreference(false);
+            }
+        };
+
+        loadPreference();
+    }, [user]);
 
     const handleLogout = async () => {
         await logOut();
@@ -22,11 +45,30 @@ function SettingsContent() {
     };
 
     const handleToggleNotifications = async () => {
+        if (!user) return;
+
         setIsSaving(true);
-        // Simulate API call to save preference
-        await new Promise(resolve => setTimeout(resolve, 800));
-        setEmailNotifications(!emailNotifications);
-        setIsSaving(false);
+        const newValue = !emailNotifications;
+
+        try {
+            const result = await updateEmailNotificationPreference(user.uid, newValue);
+
+            if (result.success) {
+                setEmailNotifications(newValue);
+                toast.success(
+                    newValue
+                        ? "Email reminders enabled! You'll get daily digests."
+                        : "Email reminders disabled. You won't receive digest emails."
+                );
+            } else {
+                toast.error("Failed to update preference. Please try again.");
+            }
+        } catch (error) {
+            console.error("Error toggling notifications:", error);
+            toast.error("Something went wrong. Please try again.");
+        } finally {
+            setIsSaving(false);
+        }
     };
 
     const getInitials = (name: string | null | undefined, email: string | null | undefined) => {
@@ -226,32 +268,54 @@ function SettingsContent() {
                         <section className="bg-white border border-slate-100 rounded-xl p-6">
                             <h2 className="text-lg font-semibold text-slate-900 mb-4 flex items-center gap-2">
                                 <span className="material-icons-outlined text-slate-400">notifications</span>
-                                Notifications
+                                Email Notifications
                             </h2>
 
-                            <div className="flex items-center justify-between py-2">
-                                <div>
-                                    <p className="font-medium text-slate-900">Assignment Reminders</p>
-                                    <p className="text-sm text-slate-500">
-                                        Get emails about upcoming due dates
+                            <div className="flex items-center justify-between py-3">
+                                <div className="flex-1 mr-4">
+                                    <p className="font-medium text-slate-900">Daily Assignment Digest</p>
+                                    <p className="text-sm text-slate-500 mt-0.5">
+                                        Receive a morning email summarizing your overdue, due today, tomorrow, and upcoming assignments.
                                     </p>
                                 </div>
-                                <button
-                                    onClick={handleToggleNotifications}
-                                    disabled={isSaving}
-                                    className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 ${emailNotifications ? 'bg-primary' : 'bg-slate-200'
-                                        }`}
-                                >
-                                    <span
-                                        className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${emailNotifications ? 'translate-x-6' : 'translate-x-1'
-                                            }`}
-                                    />
-                                </button>
+                                {isLoadingPreference ? (
+                                    <div className="w-11 h-6 rounded-full bg-slate-100 animate-pulse" />
+                                ) : (
+                                    <button
+                                        id="email-notifications-toggle"
+                                        onClick={handleToggleNotifications}
+                                        disabled={isSaving}
+                                        className={`relative inline-flex h-6 w-11 flex-shrink-0 items-center rounded-full transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 ${emailNotifications ? 'bg-primary' : 'bg-slate-200'
+                                            } ${isSaving ? 'opacity-50 cursor-wait' : 'cursor-pointer'}`}
+                                        aria-checked={emailNotifications}
+                                        role="switch"
+                                    >
+                                        <span
+                                            className={`inline-block h-4 w-4 transform rounded-full bg-white shadow-sm transition-transform duration-200 ${emailNotifications ? 'translate-x-6' : 'translate-x-1'
+                                                }`}
+                                        />
+                                    </button>
+                                )}
                             </div>
-                            <div className="mt-4 pt-4 border-t border-slate-50">
-                                <p className="text-xs text-slate-400 flex items-center gap-1">
-                                    <span className="material-icons-outlined text-sm">info</span>
-                                    Reminders are sent 24 hours before deadlines.
+
+                            {/* Status indicator */}
+                            <div className="mt-3 pt-3 border-t border-slate-50">
+                                <div className="flex items-center gap-2">
+                                    <div className={`w-2 h-2 rounded-full ${emailNotifications ? 'bg-green-500' : 'bg-slate-300'}`} />
+                                    <p className="text-xs text-slate-500">
+                                        {isLoadingPreference
+                                            ? 'Loading...'
+                                            : emailNotifications
+                                                ? 'Reminders active — sent daily at 8:00 AM WAT'
+                                                : 'Reminders paused — you will not receive emails'}
+                                    </p>
+                                </div>
+                            </div>
+
+                            {/* Info box */}
+                            <div className="mt-4 p-3 bg-slate-50 rounded-lg">
+                                <p className="text-xs text-slate-500 leading-relaxed">
+                                    <strong className="text-slate-600">How it works:</strong> Every morning, you'll receive one email with all your assignments grouped by urgency — overdue, due today, due tomorrow, and due this week. Each assignment shows its priority level (High, Medium, Low).
                                 </p>
                             </div>
                         </section>

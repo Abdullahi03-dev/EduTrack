@@ -4,7 +4,7 @@ import Link from "next/link";
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/contexts/AuthContext";
-import { signInWithEmail, signUpWithEmail, signInWithGoogle, getGoogleRedirectResult } from "@/lib/auth";
+import { signInWithEmail, signUpWithEmail, signInWithGoogle } from "@/lib/auth";
 
 export default function AuthPage() {
     const [isLogin, setIsLogin] = useState(true);
@@ -13,51 +13,32 @@ export default function AuthPage() {
     const [name, setName] = useState("");
     const [error, setError] = useState("");
     const [loading, setLoading] = useState(false);
-    const [isCheckingRedirect, setIsCheckingRedirect] = useState(true);
     const router = useRouter();
     const { user, loading: authLoading } = useAuth();
 
-    // Check for Google redirect result on mount
-    useEffect(() => {
-        const checkGoogleRedirect = async () => {
-            try {
-                const { user, error } = await getGoogleRedirectResult();
-                if (error) {
-                    // Only show error if not a normal "no redirect" case
-                    if (error && !error.includes('No redirect')) {
-                        setError(error);
-                    }
-                }
-                // If user exists, AuthContext will handle the redirect via the useEffect below
-            } catch (err) {
-                console.error('Error checking redirect result:', err);
-            } finally {
-                setIsCheckingRedirect(false);
-            }
-        };
-
-        checkGoogleRedirect();
-    }, []);
-
     // Redirect if already authenticated
     useEffect(() => {
-        if (!authLoading && !isCheckingRedirect && user) {
+        if (!authLoading && user) {
             if (user.emailVerified) {
-                router.push("/dashboard");
+                router.replace("/dashboard");
             } else {
-                router.push("/verify-email");
+                router.replace("/verify-email");
             }
         }
-    }, [user, authLoading, isCheckingRedirect, router]);
+    }, [user, authLoading, router]);
 
     const handleGoogleSignIn = async () => {
         setError("");
         setLoading(true);
 
         try {
-            // This will redirect to Google, then back to this page
-            await signInWithGoogle();
-            // No need to set loading to false - the redirect will handle it
+            const { user, error } = await signInWithGoogle();
+            if (error) {
+                setError(error);
+                setLoading(false);
+            }
+            // If successful, AuthContext's onAuthStateChanged will fire
+            // and the useEffect above will handle the redirect
         } catch (err: any) {
             setError(err.message || "Authentication failed");
             setLoading(false);

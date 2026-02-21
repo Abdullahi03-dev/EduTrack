@@ -15,13 +15,14 @@ export interface UserProfile {
 
 /**
  * Create or update user profile in Firestore
- * Call this when a user signs up or updates their profile
+ * - For NEW users: creates profile with emailNotifications = true (default)
+ * - For EXISTING users: only updates email, name, and updatedAt
+ *   (does NOT touch emailNotifications — that's managed by Settings page)
  */
 export async function createOrUpdateUserProfile(
     uid: string,
     email: string,
-    name: string,
-    emailNotifications: boolean = true
+    name: string
 ) {
     try {
         const userRef = doc(db, 'users', uid);
@@ -30,20 +31,19 @@ export async function createOrUpdateUserProfile(
         const now = new Date();
 
         if (userDoc.exists()) {
-            // Update existing user
+            // Update existing user — preserve emailNotifications!
             await updateDoc(userRef, {
                 email,
                 name,
-                emailNotifications,
                 updatedAt: now,
             });
         } else {
-            // Create new user profile
+            // Create new user profile — default notifications ON
             await setDoc(userRef, {
                 uid,
                 email,
                 name,
-                emailNotifications,
+                emailNotifications: true,
                 createdAt: now,
                 updatedAt: now,
             });

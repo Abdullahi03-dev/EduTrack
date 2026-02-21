@@ -27,7 +27,8 @@ export const useAuth = () => {
 const setCookie = (name: string, value: string, days: number = 7) => {
     const expires = new Date();
     expires.setTime(expires.getTime() + days * 24 * 60 * 60 * 1000);
-    document.cookie = `${name}=${value};expires=${expires.toUTCString()};path=/;SameSite=Lax`;
+    const secure = window.location.protocol === 'https:' ? ';Secure' : '';
+    document.cookie = `${name}=${value};expires=${expires.toUTCString()};path=/;SameSite=Lax${secure}`;
 };
 
 // Helper function to delete cookies
@@ -43,12 +44,12 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         const unsubscribe = onAuthStateChange(async (user) => {
             try {
                 if (user) {
-                    // Create/update user profile for email reminders
+                    // Create user profile if new, or update email/name only
+                    // Does NOT overwrite emailNotifications for existing users
                     await createOrUpdateUserProfile(
                         user.uid,
                         user.email || '',
-                        user.displayName || 'Student',
-                        true // Enable email notifications by default
+                        user.displayName || 'Student'
                     );
 
                     // Set auth cookies for middleware - BEFORE setting user state

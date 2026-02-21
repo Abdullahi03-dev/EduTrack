@@ -1,23 +1,30 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { collection, query, where, getDocs, Timestamp, doc, getDoc } from 'firebase/firestore';
-import { db } from '@/lib/firebase';
-import { sendAssignmentReminder } from '@/lib/email';
-import { Assignment } from '@/lib/firestore';
+import { adminDb } from '@/lib/firebase-admin';
+import { sendDailyDigest } from '@/lib/email';
 
 /**
- * Cron Job API Route - Smart Assignment Reminders
+ * Cron Job: Daily Assignment Digest
  * 
- * Logic:
- * - Runs every hour
- * - High Priority: Sends email 24h before (Day Before) AND Morning of due date
- * - Medium Priority: Sends email Morning of due date
- * - Low Priority: Sends email 2 hours before deadline
+ * Runs once daily at 7 AM UTC (8 AM WAT/Nigeria time)
+ * Uses Firebase Admin SDK to bypass Firestore security rules.
  * 
- * Timezone assumption: UTC+1 (West Africa Time) for "Morning" check (8 AM)
+ * What it does:
+ * 1. Fetches ALL incomplete assignments from Firestore
+ * 2. Groups them into 4 categories:
+ *    - 🔴 Overdue (past due date, not completed)
+ *    - 🟡 Due Today
+ *    - 🟣 Due Tomorrow
+ *    - 🔵 Due This Week (next 7 days)
+ * 3. Groups by user (each user gets ONE digest email)
+ * 4. Checks user's emailNotifications setting — skips if disabled
+ * 5. Sends digest emails via Resend API
+ * 
+ * Priority (high/medium/low) is preserved in each section —
+ * assignments are sorted high → medium → low within each category.
  */
 export async function GET(request: NextRequest) {
     try {
-        // Security: Verify cron secret
+        // Security: Verify cron secret (Vercel sends this automatically for cron jobs)
         const authHeader = request.headers.get('authorization');
         const cronSecret = process.env.CRON_SECRET;
 
@@ -28,178 +35,197 @@ export async function GET(request: NextRequest) {
             );
         }
 
-        console.log('Starting smart assignment reminder check...');
-
         const now = new Date();
-        // Look ahead 48 hours to catch "Day Before" reminders
-        const futureWindow = new Date(now.getTime() + 48 * 60 * 60 * 1000);
-        // Look back 24 hours to catch overdue assignments
-        const pastWindow = new Date(now.getTime() - 24 * 60 * 60 * 1000);
+        console.log(`🔔 Daily Digest cron started at ${now.toISOString()}`);
 
-        // Query assignments due in the next 48 hours OR overdue (within last 24h) that are not completed
-        const assignmentsRef = collection(db, 'assignments');
-        const q = query(
-            assignmentsRef,
-            where('completed', '==', false), // Handle as boolean, not string
-            where('dueDate', '>=', Timestamp.fromDate(pastWindow)),
-            where('dueDate', '<=', Timestamp.fromDate(futureWindow))
-        );
+        // ============================================================
+        // Time boundaries (all in UTC, displayed in WAT = UTC+1)
+        // ============================================================
 
-        /* 
-         * TEST MODE: IMMEDIATE ALERT
-         * Checks for High Priority assignments created in the last 15 minutes.
-         * Uncomment to enable "Rapid Testing" on production.
-         */
-        // const testWindow = new Date(Date.now() - 15 * 60 * 1000); // 15 mins ago
-        // const testQ = query(
-        //     assignmentsRef,
-        //     where('priority', '==', 'high'),
-        //     where('createdAt', '>=', Timestamp.fromDate(testWindow))
-        // );
-        // const testSnapshot = await getDocs(testQ);
-        // if (!testSnapshot.empty) {
-        //     console.log('TEST MODE: Found recently created high priority assignments');
-        //     // Merge these into the main results or process them separately
-        //     // For simplicity in this test, we can just process them using the same loop below
-        //     // by adding them to querySnapshot.docs (if possible) or handling logic here.
-        // }
+        // "Today" in WAT: We consider assignments due from now until end of today
+        const todayStart = new Date(now);
+        const todayEnd = new Date(now);
+        todayEnd.setUTCHours(23, 59, 59, 999);
 
-        // END TEST MODE 
+        // "Tomorrow" in WAT
+        const tomorrowStart = new Date(todayEnd.getTime() + 1);
+        const tomorrowEnd = new Date(tomorrowStart);
+        tomorrowEnd.setUTCHours(23, 59, 59, 999);
 
-        const querySnapshot = await getDocs(q);
+        // "This Week" = day after tomorrow through 7 days from now
+        const weekStart = new Date(tomorrowEnd.getTime() + 1);
+        const weekEnd = new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000);
 
-        // Group assignments by type and user
-        // We might send multiple emails to the same user if they have different types of reminders
-        const remindersToSend: Map<string, {
-            email: string;
-            name: string;
-            type: 'morning' | 'tomorrow' | 'urgent';
-            assignments: Assignment[];
-        }> = new Map();
+        // "Overdue" = anything before now that isn't completed
+        // Look back up to 30 days to catch long-overdue assignments
+        const overdueStart = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
 
-        // Helper to generate a unique key for grouping (UserId + Type)
-        const getKey = (userId: string, type: string) => `${userId}-${type}`;
+        // ============================================================
+        // Query Firestore for ALL incomplete assignments (using Admin SDK)
+        // ============================================================
+        // We need to get everything from overdueStart to weekEnd
+        const assignmentsRef = adminDb.collection('assignments');
+        const snapshot = await assignmentsRef
+            .where('completed', '==', false)
+            .where('dueDate', '>=', overdueStart)
+            .where('dueDate', '<=', weekEnd)
+            .get();
 
-        // Get current hour in UTC+1 (Nigeria/West Africa)
-        // new Date().getUTCHours() returns UTC hour. Add 1 for WAT.
-        // 8 AM WAT = 7 AM UTC, but allow 3-hour window (6-9 AM UTC = 7-10 AM WAT)
-        const currentHourUTC = now.getUTCHours();
-        const isMorningCheck = currentHourUTC >= 6 && currentHourUTC <= 9; // 6-9 AM UTC = 7-10 AM WAT
+        console.log(`📋 Found ${snapshot.size} incomplete assignments in the next 7 days + overdue`);
 
-        // Process each assignment
-        for (const docSnapshot of querySnapshot.docs) {
-            const data = docSnapshot.data();
-            const dueDate = data.dueDate.toDate();
-            const timeDiffMs = dueDate.getTime() - now.getTime();
-            const hoursLeft = timeDiffMs / (1000 * 60 * 60);
-            const minutesSinceCreation = data.createdAt ? (now.getTime() - data.createdAt.toDate().getTime()) / (1000 * 60) : 999999;
+        if (snapshot.empty) {
+            console.log('✅ No assignments to report. Exiting.');
+            return NextResponse.json({
+                success: true,
+                message: 'No assignments found — no emails to send',
+                stats: { totalChecked: 0, emailsSent: 0 },
+            });
+        }
 
-            let reminderType: 'morning' | 'tomorrow' | 'urgent' | null = null;
+        // ============================================================
+        // Group assignments by user, then by category
+        // ============================================================
+        interface AssignmentEntry {
+            title: string;
+            course: string;
+            dueDate: Date;
+            priority: 'high' | 'medium' | 'low';
+        }
 
-            // OVERDUE ALERT - Any overdue assignment not yet completed
-            if (hoursLeft < 0) {
-                reminderType = 'urgent'; // Send urgent reminder for overdue
-            }
-            // NEW ASSIGNMENT ALERT (Test Mechanism)
-            // If High Priority & Created < 60 mins ago -> Send Immediate Confirmation
-            else if (data.priority === 'high' && minutesSinceCreation < 60) {
-                reminderType = 'urgent'; // Triggers immediate email
-            }
-            // SMART PRIORITY LOGIC (Standard Rules)
-            else if (data.priority === 'high') {
-                // High Priority Logic
-                if (hoursLeft >= 23 && hoursLeft <= 25) {
-                    reminderType = 'tomorrow'; // Day before (~24h)
-                } else if (hoursLeft >= 0 && hoursLeft < 24 && isMorningCheck) {
-                    reminderType = 'morning'; // Morning of due date
-                }
-            } else if (data.priority === 'medium') {
-                // Medium Priority Logic
-                if (hoursLeft >= 0 && hoursLeft < 24 && isMorningCheck) {
-                    reminderType = 'morning'; // Morning of due date
-                }
-            } else if (data.priority === 'low') {
-                // Low Priority Logic
-                if (hoursLeft >= 1.5 && hoursLeft <= 2.5) {
-                    reminderType = 'urgent'; // ~2 hours before
-                }
+        interface UserDigest {
+            userId: string;
+            overdue: AssignmentEntry[];
+            dueToday: AssignmentEntry[];
+            dueTomorrow: AssignmentEntry[];
+            dueThisWeek: AssignmentEntry[];
+        }
+
+        const userDigests: Map<string, UserDigest> = new Map();
+
+        for (const doc of snapshot.docs) {
+            const data = doc.data();
+            const dueDate: Date = data.dueDate.toDate();
+            const userId: string = data.userId;
+
+            // Initialize user digest if not exists
+            if (!userDigests.has(userId)) {
+                userDigests.set(userId, {
+                    userId,
+                    overdue: [],
+                    dueToday: [],
+                    dueTomorrow: [],
+                    dueThisWeek: [],
+                });
             }
 
-            // If a rule matched, add to list
-            if (reminderType) {
-                const userInfo = await getUserInfo(data.userId);
+            const entry: AssignmentEntry = {
+                title: data.title,
+                course: data.course,
+                dueDate,
+                priority: data.priority,
+            };
 
-                if (userInfo && userInfo.email) {
-                    const key = getKey(data.userId, reminderType);
-
-                    if (!remindersToSend.has(key)) {
-                        remindersToSend.set(key, {
-                            email: userInfo.email,
-                            name: userInfo.name || 'Student',
-                            type: reminderType,
-                            assignments: [],
-                        });
-                    }
-
-                    // Manual mapping
-                    const assignment: Assignment = {
-                        id: docSnapshot.id,
-                        userId: data.userId,
-                        title: data.title,
-                        course: data.course,
-                        description: data.description || '',
-                        dueDate: dueDate,
-                        priority: data.priority,
-                        completed: data.completed,
-                        createdAt: data.createdAt?.toDate(),
-                    };
-
-                    remindersToSend.get(key)!.assignments.push(assignment);
-                }
+            // Categorize the assignment
+            if (dueDate < now) {
+                // Overdue
+                userDigests.get(userId)!.overdue.push(entry);
+            } else if (dueDate >= now && dueDate <= todayEnd) {
+                // Due today
+                userDigests.get(userId)!.dueToday.push(entry);
+            } else if (dueDate >= tomorrowStart && dueDate <= tomorrowEnd) {
+                // Due tomorrow
+                userDigests.get(userId)!.dueTomorrow.push(entry);
+            } else if (dueDate >= weekStart && dueDate <= weekEnd) {
+                // Due this week
+                userDigests.get(userId)!.dueThisWeek.push(entry);
             }
         }
 
-        // Send emails
+        console.log(`👥 ${userDigests.size} user(s) have assignments to report`);
+
+        // ============================================================
+        // Look up user info and send emails
+        // ============================================================
         const emailResults = [];
-        for (const [key, data] of remindersToSend) {
-            console.log(`Sending '${data.type}' reminder to ${data.email} with ${data.assignments.length} assignments`);
 
-            const result = await sendAssignmentReminder({
-                userEmail: data.email,
-                userName: data.name,
-                assignments: data.assignments,
-                type: data.type,
-            });
+        for (const [userId, digest] of userDigests) {
+            const totalForUser = digest.overdue.length + digest.dueToday.length + digest.dueTomorrow.length + digest.dueThisWeek.length;
 
-            emailResults.push({
-                email: data.email,
-                type: data.type,
-                count: data.assignments.length,
-                success: result.success,
-                error: result.error ? String(result.error) : undefined
-            });
+            if (totalForUser === 0) continue;
+
+            // Get user info from Firestore (Admin SDK)
+            const userInfo = await getUserInfo(userId);
+
+            if (!userInfo) {
+                console.log(`  ⏭️ Skipping user ${userId}: profile not found`);
+                continue;
+            }
+
+            if (!userInfo.emailNotifications) {
+                console.log(`  ⏭️ Skipping ${userInfo.email}: notifications disabled`);
+                continue;
+            }
+
+            console.log(`  📧 Sending digest to ${userInfo.email}:`);
+            console.log(`     🔴 Overdue: ${digest.overdue.length}`);
+            console.log(`     🟡 Due Today: ${digest.dueToday.length}`);
+            console.log(`     🟣 Due Tomorrow: ${digest.dueTomorrow.length}`);
+            console.log(`     🔵 This Week: ${digest.dueThisWeek.length}`);
+
+            try {
+                const result = await sendDailyDigest({
+                    userEmail: userInfo.email,
+                    userName: userInfo.name,
+                    overdue: digest.overdue,
+                    dueToday: digest.dueToday,
+                    dueTomorrow: digest.dueTomorrow,
+                    dueThisWeek: digest.dueThisWeek,
+                });
+
+                emailResults.push({
+                    email: userInfo.email,
+                    success: result.success,
+                    skipped: result.skipped || false,
+                    stats: {
+                        overdue: digest.overdue.length,
+                        dueToday: digest.dueToday.length,
+                        dueTomorrow: digest.dueTomorrow.length,
+                        dueThisWeek: digest.dueThisWeek.length,
+                    },
+                });
+            } catch (emailError) {
+                console.error(`  ❌ Failed to send to ${userInfo.email}:`, emailError);
+                emailResults.push({
+                    email: userInfo.email,
+                    success: false,
+                    error: String(emailError),
+                });
+            }
         }
 
-        console.log('Cron job completed successfully');
+        const sent = emailResults.filter(r => r.success).length;
+        const failed = emailResults.filter(r => !r.success).length;
+
+        console.log(`\n✅ Cron completed: ${sent} emails sent, ${failed} failed`);
 
         return NextResponse.json({
             success: true,
-            message: 'Smart reminders processed',
+            message: 'Daily digest processed',
             stats: {
-                totalAssignmentsChecked: querySnapshot.size,
-                emailsSent: emailResults.filter(r => r.success).length,
-                typesTriggered: emailResults.map(r => r.type),
+                totalAssignmentsChecked: snapshot.size,
+                usersProcessed: userDigests.size,
+                emailsSent: sent,
+                emailsFailed: failed,
             },
             results: emailResults,
         });
 
     } catch (error: any) {
-        console.error('Error in cron job:', error);
+        console.error('❌ Cron job error:', error);
         return NextResponse.json(
             {
                 error: 'Internal server error',
                 message: error.message || 'Unknown error',
-                stack: process.env.NODE_ENV === 'development' ? error.stack : undefined
             },
             { status: 500 }
         );
@@ -207,24 +233,28 @@ export async function GET(request: NextRequest) {
 }
 
 /**
- * Get user information from Firestore users collection
+ * Get user info using Firebase Admin SDK (bypasses security rules)
  */
-async function getUserInfo(userId: string): Promise<{ email: string; name: string; emailNotifications: boolean } | null> {
+async function getUserInfo(userId: string): Promise<{
+    email: string;
+    name: string;
+    emailNotifications: boolean;
+} | null> {
     try {
-        const userDoc = await getDoc(doc(db, 'users', userId));
+        const userDoc = await adminDb.collection('users').doc(userId).get();
 
-        if (userDoc.exists()) {
-            const data = userDoc.data();
-            if (data.emailNotifications === false) return null;
-            return {
-                email: data.email,
-                name: data.name || 'Student',
-                emailNotifications: data.emailNotifications ?? true
-            };
+        if (!userDoc.exists) {
+            return null;
         }
-        return null;
+
+        const data = userDoc.data()!;
+        return {
+            email: data.email || '',
+            name: data.name || 'Student',
+            emailNotifications: data.emailNotifications !== false, // default true
+        };
     } catch (error) {
-        console.error('Error fetching user info:', error);
+        console.error(`Error fetching user ${userId}:`, error);
         return null;
     }
 }

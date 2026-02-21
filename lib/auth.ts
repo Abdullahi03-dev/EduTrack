@@ -1,8 +1,7 @@
 import {
     createUserWithEmailAndPassword,
     signInWithEmailAndPassword,
-    signInWithRedirect,
-    getRedirectResult,
+    signInWithPopup,
     GoogleAuthProvider,
     signOut,
     onAuthStateChanged,
@@ -63,41 +62,25 @@ export const signInWithEmail = async (email: string, password: string) => {
     }
 };
 
-// Sign in with Google OAuth (using redirect for better security & COOP compatibility)
+// Sign in with Google OAuth (using popup for reliable cross-origin auth)
 export const signInWithGoogle = async () => {
     try {
-        await signInWithRedirect(auth, googleProvider);
-        // Note: After redirect, the auth state will be automatically updated
-        // No need to return here - the redirect will handle everything
-        return { user: null, error: null };
+        const result = await signInWithPopup(auth, googleProvider);
+        return { user: result.user, error: null };
     } catch (error: any) {
         let errorMessage = 'An error occurred during Google sign in.';
 
         if (error.code === 'auth/popup-blocked') {
-            errorMessage = 'Authentication blocked. Please check your browser settings.';
-        }
-
-        return { user: null, error: errorMessage };
-    }
-};
-
-// Get redirect result (call this on page load to complete redirect auth)
-export const getGoogleRedirectResult = async () => {
-    try {
-        const result = await getRedirectResult(auth);
-        if (result) {
-            return { user: result.user, error: null };
-        }
-        return { user: null, error: null };
-    } catch (error: any) {
-        let errorMessage = 'An error occurred during authentication.';
-
-        if (error.code === 'auth/account-exists-with-different-credential') {
-            errorMessage = 'An account already exists with this email.';
-        } else if (error.code === 'auth/auth-domain-config-required') {
-            errorMessage = 'Authentication domain not configured.';
+            errorMessage = 'Pop-up was blocked by your browser. Please allow pop-ups for this site and try again.';
+        } else if (error.code === 'auth/popup-closed-by-user') {
+            errorMessage = 'Sign-in was cancelled. Please try again.';
+        } else if (error.code === 'auth/account-exists-with-different-credential') {
+            errorMessage = 'An account already exists with this email using a different sign-in method.';
+        } else if (error.code === 'auth/cancelled-popup-request') {
+            // User opened multiple popups, ignore this silently
+            return { user: null, error: null };
         } else if (error.code === 'auth/operation-not-allowed') {
-            errorMessage = 'Google sign in is not enabled.';
+            errorMessage = 'Google sign-in is not enabled. Please contact support.';
         }
 
         return { user: null, error: errorMessage };

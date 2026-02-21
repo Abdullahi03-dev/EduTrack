@@ -24,13 +24,11 @@ service cloud.firestore {
       allow read: if isSignedIn() && isOwner(resource.data.userId);
       
       // CREATE: Users can only create assignments for themselves
-      // This prevents User A from creating an assignment with userId: "user_B_uid"
       allow create: if isSignedIn() 
                     && isOwner(request.resource.data.userId)
                     && request.resource.data.keys().hasAll(['userId', 'title', 'course', 'dueDate', 'priority', 'completed']);
       
       // UPDATE: Users can only update their own assignments
-      // This prevents User A from modifying User B's assignments
       allow update: if isSignedIn() && isOwner(resource.data.userId);
       
       // DELETE: Users can only delete their own assignments
@@ -38,11 +36,11 @@ service cloud.firestore {
     }
     
     // ========================================
-    // DENY ALL OTHER COLLECTIONS (Safety)
+    // USERS COLLECTION (for user profiles)
     // ========================================
-    // This ensures no other collections can be accessed
-    match /{document=**} {
-      allow read, write: if false;
+    match /users/{userId} {
+      // Users can read and write their own profile
+      allow read, write: if isSignedIn() && request.auth.uid == userId;
     }
   }
 }
@@ -51,12 +49,17 @@ service cloud.firestore {
 // WHAT THESE RULES DO:
 // ========================================
 // 
+// ASSIGNMENTS:
 // User A can ONLY see assignments where userId == "user_A_uid"
 // User A CANNOT see User B's assignments
 // User A CANNOT create an assignment with userId: "user_B_uid"
 // User A CANNOT modify or delete User B's assignments
 // Unauthenticated users get NOTHING (all requests denied)
 // Required fields are enforced on creation
+//
+// USERS:
+// Each user can only read/write their own profile document
+// The cron job uses Firebase Admin SDK (bypasses these rules entirely)
 //
 // ========================================
 // HOW TO APPLY THESE RULES:
@@ -71,33 +74,4 @@ service cloud.firestore {
 // 7. Click "Publish"
 //
 // IMPORTANT: Make sure to publish the rules!
-//
-// ========================================
-// TESTING YOUR RULES:
-// ========================================
-//
-// You can test these rules in the Firebase Console:
-// 1. Go to the "Rules" tab
-// 2. Click "Rules Playground" at the top
-// 3. Try these scenarios:
-//
-// Test 1: Unauthenticated read (should DENY)
-// - Location: /assignments/test123
-// - Operation: get
-// - Authenticated: No
-// - Expected: DENY
-//
-// Test 2: User reading their own assignment (should ALLOW)
-// - Location: /assignments/test123
-// - Operation: get
-// - Authenticated: Yes (uid: abc123)
-// - Simulated data: { userId: "abc123" }
-// - Expected: ALLOW
-//
-// Test 3: User reading someone else's assignment (should DENY)
-// - Location: /assignments/test123
-// - Operation: get
-// - Authenticated: Yes (uid: abc123)
-// - Simulated data: { userId: "xyz789" }
-// - Expected: DENY
 //
