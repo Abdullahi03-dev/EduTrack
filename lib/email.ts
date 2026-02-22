@@ -33,11 +33,11 @@ export async function sendDailyDigest(data: DailyDigestData) {
   }
 
   // Build subject line
-  let subject = '📚 Your Daily Assignment Digest';
+  let subject = 'Your Daily Assignment Digest';
   if (overdue.length > 0) {
-    subject = `🚨 ${overdue.length} Overdue + ${dueToday.length + dueTomorrow.length + dueThisWeek.length} upcoming assignments`;
+    subject = `${overdue.length} Overdue + ${dueToday.length + dueTomorrow.length + dueThisWeek.length} upcoming assignments`;
   } else if (dueToday.length > 0) {
-    subject = `📌 ${dueToday.length} due today + ${dueTomorrow.length + dueThisWeek.length} upcoming`;
+    subject = `${dueToday.length} due today + ${dueTomorrow.length + dueThisWeek.length} upcoming`;
   }
 
   // Build each section
@@ -45,7 +45,7 @@ export async function sendDailyDigest(data: DailyDigestData) {
 
   if (overdue.length > 0) {
     sections.push(buildSection(
-      '🔴 Overdue',
+      'Overdue',
       'These assignments are past their deadline!',
       '#DC2626', '#FEF2F2',
       overdue,
@@ -55,7 +55,7 @@ export async function sendDailyDigest(data: DailyDigestData) {
 
   if (dueToday.length > 0) {
     sections.push(buildSection(
-      '🟡 Due Today',
+      'Due Today',
       'Complete these before end of day.',
       '#D97706', '#FFFBEB',
       dueToday,
@@ -65,7 +65,7 @@ export async function sendDailyDigest(data: DailyDigestData) {
 
   if (dueTomorrow.length > 0) {
     sections.push(buildSection(
-      '🟣 Due Tomorrow',
+      'Due Tomorrow',
       'Get a head start on these.',
       '#7C3AED', '#F5F3FF',
       dueTomorrow,
@@ -75,7 +75,7 @@ export async function sendDailyDigest(data: DailyDigestData) {
 
   if (dueThisWeek.length > 0) {
     sections.push(buildSection(
-      '🔵 Due This Week',
+      'Due This Week',
       'Plan ahead for these upcoming deadlines.',
       '#2563EB', '#EFF6FF',
       dueThisWeek,
@@ -111,7 +111,7 @@ export async function sendDailyDigest(data: DailyDigestData) {
               </table>
             </div>
             <div style="padding: 28px;">
-              <p style="margin: 0 0 6px 0; font-size: 18px; font-weight: 600; color: #111827;">Good morning, ${userName} 👋</p>
+              <p style="margin: 0 0 6px 0; font-size: 18px; font-weight: 600; color: #111827;">Good morning, ${userName}</p>
               <p style="margin: 0; color: #6b7280; font-size: 14px; line-height: 1.5;">
                 Here's your assignment overview — <strong>${totalCount} assignment${totalCount !== 1 ? 's' : ''}</strong> need your attention.
               </p>
@@ -166,10 +166,10 @@ export async function sendDailyDigest(data: DailyDigestData) {
     }
 
     const result = await response.json();
-    console.log(`📧 Email sent to ${userEmail}:`, result);
+    console.log(`Email sent to ${userEmail}:`, result);
     return { success: true, data: result };
   } catch (error) {
-    console.error(`❌ Error sending email to ${userEmail}:`, error);
+    console.error(`Error sending email to ${userEmail}:`, error);
     return { success: false, error };
   }
 }
@@ -208,7 +208,7 @@ function buildSection(
           <tr>
             <td colspan="2" style="padding-top: 4px;">
               <span style="font-size: 12px; color: ${isOverdue ? '#DC2626' : '#6b7280'};">
-                ${isOverdue ? '⚠️ Was due: ' : '📅 Due: '}${formatDate(a.dueDate)}
+                ${isOverdue ? 'Was due: ' : 'Due: '}${formatDate(a.dueDate)}
               </span>
             </td>
           </tr>

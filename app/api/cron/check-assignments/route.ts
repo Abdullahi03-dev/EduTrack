@@ -2,26 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { adminDb } from '@/lib/firebase-admin';
 import { sendDailyDigest } from '@/lib/email';
 
-/**
- * Cron Job: Daily Assignment Digest
- * 
- * Runs once daily at 7 AM UTC (8 AM WAT/Nigeria time)
- * Uses Firebase Admin SDK to bypass Firestore security rules.
- * 
- * What it does:
- * 1. Fetches ALL incomplete assignments from Firestore
- * 2. Groups them into 4 categories:
- *    - 🔴 Overdue (past due date, not completed)
- *    - 🟡 Due Today
- *    - 🟣 Due Tomorrow
- *    - 🔵 Due This Week (next 7 days)
- * 3. Groups by user (each user gets ONE digest email)
- * 4. Checks user's emailNotifications setting — skips if disabled
- * 5. Sends digest emails via Resend API
- * 
- * Priority (high/medium/low) is preserved in each section —
- * assignments are sorted high → medium → low within each category.
- */
+
 export async function GET(request: NextRequest) {
     try {
         // Security: Verify cron secret (Vercel sends this automatically for cron jobs)
@@ -36,7 +17,7 @@ export async function GET(request: NextRequest) {
         }
 
         const now = new Date();
-        console.log(`🔔 Daily Digest cron started at ${now.toISOString()}`);
+        console.log(`Daily Digest cron started at ${now.toISOString()}`);
 
         // ============================================================
         // Time boundaries (all in UTC, displayed in WAT = UTC+1)
@@ -71,10 +52,10 @@ export async function GET(request: NextRequest) {
             .where('dueDate', '<=', weekEnd)
             .get();
 
-        console.log(`📋 Found ${snapshot.size} incomplete assignments in the next 7 days + overdue`);
+        console.log(` Found ${snapshot.size} incomplete assignments in the next 7 days + overdue`);
 
         if (snapshot.empty) {
-            console.log('✅ No assignments to report. Exiting.');
+            console.log('No assignments to report. Exiting.');
             return NextResponse.json({
                 success: true,
                 message: 'No assignments found — no emails to send',
@@ -141,7 +122,7 @@ export async function GET(request: NextRequest) {
             }
         }
 
-        console.log(`👥 ${userDigests.size} user(s) have assignments to report`);
+        console.log(`${userDigests.size} user(s) have assignments to report`);
 
         // ============================================================
         // Look up user info and send emails
@@ -157,20 +138,20 @@ export async function GET(request: NextRequest) {
             const userInfo = await getUserInfo(userId);
 
             if (!userInfo) {
-                console.log(`  ⏭️ Skipping user ${userId}: profile not found`);
+                console.log(`  Skipping user ${userId}: profile not found`);
                 continue;
             }
 
             if (!userInfo.emailNotifications) {
-                console.log(`  ⏭️ Skipping ${userInfo.email}: notifications disabled`);
+                console.log(`  Skipping ${userInfo.email}: notifications disabled`);
                 continue;
             }
 
-            console.log(`  📧 Sending digest to ${userInfo.email}:`);
-            console.log(`     🔴 Overdue: ${digest.overdue.length}`);
-            console.log(`     🟡 Due Today: ${digest.dueToday.length}`);
-            console.log(`     🟣 Due Tomorrow: ${digest.dueTomorrow.length}`);
-            console.log(`     🔵 This Week: ${digest.dueThisWeek.length}`);
+            console.log(`  Sending digest to ${userInfo.email}:`);
+            console.log(`     Overdue: ${digest.overdue.length}`);
+            console.log(`     Due Today: ${digest.dueToday.length}`);
+            console.log(`     Due Tomorrow: ${digest.dueTomorrow.length}`);
+            console.log(`     This Week: ${digest.dueThisWeek.length}`);
 
             try {
                 const result = await sendDailyDigest({
@@ -194,7 +175,7 @@ export async function GET(request: NextRequest) {
                     },
                 });
             } catch (emailError) {
-                console.error(`  ❌ Failed to send to ${userInfo.email}:`, emailError);
+                console.error(`  Failed to send to ${userInfo.email}:`, emailError);
                 emailResults.push({
                     email: userInfo.email,
                     success: false,
@@ -206,7 +187,7 @@ export async function GET(request: NextRequest) {
         const sent = emailResults.filter(r => r.success).length;
         const failed = emailResults.filter(r => !r.success).length;
 
-        console.log(`\n✅ Cron completed: ${sent} emails sent, ${failed} failed`);
+        console.log(`\nCron completed: ${sent} emails sent, ${failed} failed`);
 
         return NextResponse.json({
             success: true,
@@ -221,7 +202,7 @@ export async function GET(request: NextRequest) {
         });
 
     } catch (error: any) {
-        console.error('❌ Cron job error:', error);
+        console.error('Cron job error:', error);
         return NextResponse.json(
             {
                 error: 'Internal server error',

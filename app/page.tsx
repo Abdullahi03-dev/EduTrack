@@ -1,4 +1,5 @@
 import Link from "next/link";
+import Image from "next/image";
 
 export default function Home() {
   return (
@@ -7,14 +8,15 @@ export default function Home() {
         {/* Header - Solid background, no blur */}
         <header className="px-6 lg:px-12 xl:px-20 py-5 flex items-center justify-between z-10 sticky top-0 bg-white border-b border-slate-100">
           <div className="flex items-center gap-2">
+            <Image src="/edutracker.jpg" alt="EduTracker Logo" width={32} height={32} className="rounded-lg object-cover" />
             <span className="font-bold text-xl tracking-tight text-slate-900">
               Edu<span className="text-primary">Tracker</span>
             </span>
           </div>
           <div className="flex items-center gap-6">
-            <button className="hidden lg:block text-sm font-medium text-slate-500 hover:text-primary transition-colors">
+            {/* <button className="hidden lg:block text-sm font-medium text-slate-500 hover:text-primary transition-colors">
               How it works
-            </button>
+            </button> */}
             <Link
               href="/auth"
               className="text-sm font-medium bg-primary hover:bg-primary/90 text-white transition-colors px-5 py-2.5 rounded-lg shadow-sm"
@@ -46,11 +48,11 @@ export default function Home() {
                   href="/auth"
                   className="flex items-center justify-center gap-3 bg-white border border-slate-200 hover:border-primary text-slate-900 font-medium py-3.5 px-6 rounded-xl transition-colors w-full sm:w-auto shadow-sm"
                 >
-                  <img
+                  {/* <img
                     alt="Google Logo"
                     className="w-5 h-5"
                     src="https://lh3.googleusercontent.com/aida-public/AB6AXuC1KPx8dzVFUKlWOaZhTjQ8qIkzLsFmyCeMUuBpoYsBFNw8QwfEBrdbpEB-L3cThnbz2nlH7DxVxVysa3NnNdivVF0qZ9_V_0l9onBaKmYS2sYIzucg8mK7BsG-exio_ZPar2xZmazity9CS7J8cA78vuoc3333ucOjokYnCdTe3CN_I3-wCOiOemWlEMwHDygtNOiMgNv_Gm3V3HL3xzuQfBKW-JfIfTRX3lCvHcAX6vlITXsJlT89EbRHyL1mMTOBSEiRLChVWgU"
-                  />
+                  /> */}
                   <span>Sign in with Google</span>
                 </Link>
               </div>
@@ -192,9 +194,7 @@ export default function Home() {
         <footer className="border-t border-slate-100 py-10 bg-white">
           <div className="max-w-7xl mx-auto px-6 flex flex-col md:flex-row justify-between items-center gap-6">
             <div className="flex items-center gap-2">
-              <span className="material-icons-outlined text-slate-400">
-                school
-              </span>
+              <Image src="/edutracker.jpg" alt="EduTracker Logo" width={24} height={24} className="rounded object-cover" />
               <span className="text-sm text-slate-500">
                 © {new Date().getFullYear()} EduTracker
               </span>

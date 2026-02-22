@@ -19,7 +19,7 @@ export async function GET(request: NextRequest) {
             return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
         }
 
-        console.log('🧪 Starting TEST MODE...');
+        console.log('Starting TEST MODE...');
 
         const now = new Date();
         const testWindow = new Date(now.getTime() - 60 * 60 * 1000); // Last 1 hour
@@ -67,18 +67,18 @@ export async function GET(request: NextRequest) {
             const userDoc = await adminDb.collection('users').doc(userId).get();
 
             if (!userDoc.exists) {
-                console.log(`⏭️ User ${userId} not found, skipping`);
+                console.log(`User ${userId} not found, skipping`);
                 continue;
             }
 
             const userData = userDoc.data()!;
 
             if (userData.emailNotifications === false) {
-                console.log(`⏭️ ${userData.email} has notifications off, skipping`);
+                console.log(`${userData.email} has notifications off, skipping`);
                 continue;
             }
 
-            console.log(`📧 Sending test digest to ${userData.email}`);
+            console.log(`Sending test digest to ${userData.email}`);
 
             const result = await sendDailyDigest({
                 userEmail: userData.email,
@@ -103,7 +103,7 @@ export async function GET(request: NextRequest) {
         });
 
     } catch (error: any) {
-        console.error('❌ Test mode error:', error);
+        console.error('Test mode error:', error);
         return NextResponse.json(
             { error: 'Internal server error', message: error.message },
             { status: 500 }

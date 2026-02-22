@@ -11,7 +11,7 @@ const lexend = Lexend({
 });
 
 export const metadata: Metadata = {
-  title: "Deadline Tracker - Student Productivity App",
+  title: "EduTracker - Student Productivity App",
   description: "The ultimate productivity tool for students to stay on top of assignments, tests, and deadlines.",
 };
 

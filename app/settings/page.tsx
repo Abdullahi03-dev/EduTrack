@@ -7,6 +7,7 @@ import { logOut } from "@/lib/auth";
 import { getUserProfile, updateEmailNotificationPreference } from "@/lib/users";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
+import Image from "next/image";
 import { toast } from "sonner";
 
 function SettingsContent() {
@@ -88,11 +89,9 @@ function SettingsContent() {
                 <div className="flex flex-col flex-1 p-6">
                     {/* Logo */}
                     <div className="flex items-center gap-2 mb-10">
-                        <div className="w-8 h-8 rounded-lg bg-primary flex items-center justify-center text-white font-bold">
-                            D
-                        </div>
+                        <Image src="/edutracker.jpg" alt="EduTracker Logo" width={32} height={32} className="rounded-lg object-cover" />
                         <span className="font-bold text-lg text-slate-900">
-                            Deadline<span className="text-primary">Tracker</span>
+                            Edu<span className="text-primary">Tracker</span>
                         </span>
                     </div>
 
@@ -152,11 +151,9 @@ function SettingsContent() {
                 <div className="flex flex-col h-full p-6">
                     <div className="flex items-center justify-between mb-10">
                         <div className="flex items-center gap-2">
-                            <div className="w-8 h-8 rounded-lg bg-primary flex items-center justify-center text-white font-bold">
-                                D
-                            </div>
+                            <Image src="/edutracker.jpg" alt="EduTracker Logo" width={32} height={32} className="rounded-lg object-cover" />
                             <span className="font-bold text-lg text-slate-900">
-                                Deadline<span className="text-primary">Tracker</span>
+                                Edu<span className="text-primary">Tracker</span>
                             </span>
                         </div>
                         <button onClick={() => setIsSidebarOpen(false)} className="text-slate-400 hover:text-slate-900">
@@ -216,11 +213,9 @@ function SettingsContent() {
                             <span className="material-icons-outlined text-2xl">menu</span>
                         </button>
                         <div className="flex items-center gap-2">
-                            <div className="w-7 h-7 rounded-lg bg-primary flex items-center justify-center text-white font-bold text-sm">
-                                D
-                            </div>
+                            <Image src="/edutracker.jpg" alt="EduTracker Logo" width={28} height={28} className="rounded-lg object-cover" />
                             <span className="font-bold text-slate-900">
-                                DeadlineTracker
+                                EduTracker
                             </span>
                         </div>
                         <div className="w-8 h-8 rounded-full bg-primary flex items-center justify-center text-white font-bold text-sm">
@@ -337,7 +332,7 @@ function SettingsContent() {
                                 </div>
                                 <div className="pt-2">
                                     <p className="text-xs text-slate-400 text-center">
-                                        &copy; 2026 DeadlineTracker. All rights reserved.
+                                        &copy; 2026 EduTracker. All rights reserved.
                                     </p>
                                 </div>
                             </div>
